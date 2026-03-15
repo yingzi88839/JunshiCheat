@@ -1,0 +1,52 @@
+name: Build JunshiCheat dylib
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build dylib
+      run: |
+        mkdir -p build
+        
+        # 编译 arm64 架构
+        clang++ -arch arm64 -dynamiclib -o build/JunshiCheat_arm64.dylib \
+          -framework Foundation \
+          -framework UIKit \
+          -framework ObjectiveC \
+          -isysroot $(xcrun -sdk iphoneos --show-sdk-path) \
+          -miphoneos-version-min=12.0 \
+          -fobjc-arc \
+          JunshiCheat.mm
+        
+        # 编译 x86_64 架构 (模拟器)
+        clang++ -arch x86_64 -dynamiclib -o build/JunshiCheat_x86_64.dylib \
+          -framework Foundation \
+          -framework UIKit \
+          -framework ObjectiveC \
+          -isysroot $(xcrun -sdk iphonesimulator --show-sdk-path) \
+          -mios-simulator-version-min=12.0 \
+          -fobjc-arc \
+          JunshiCheat.mm
+        
+        # 创建通用二进制文件
+        lipo -create build/JunshiCheat_arm64.dylib build/JunshiCheat_x86_64.dylib -output build/JunshiCheat.dylib
+        
+        # 显示文件信息
+        ls -lh build/
+        file build/JunshiCheat.dylib
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: JunshiCheat
+        path: build/

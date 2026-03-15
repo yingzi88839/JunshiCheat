@@ -1,0 +1,45 @@
+name: Build JunshiCheat with Theos
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Install Theos Dependencies
+      run: |
+        brew install ldid
+        brew install make
+        
+    - name: Setup Theos
+      run: |
+        git clone --recursive https://github.com/theos/theos.git $THEOS
+        echo "THEOS=$THEOS" >> $GITHUB_ENV
+        echo "THEOS_DEVICE_IP=localhost" >> $GITHUB_ENV
+      env:
+        THEOS: ${{ github.workspace }}/theos
+    
+    - name: Download iOS SDK
+      run: |
+        git clone https://github.com/theos/sdks.git $THEOS/sdks
+        
+    - name: Build with Theos
+      run: |
+        export THEOS=$PWD/theos
+        make clean
+        make package FINALPACKAGE=1
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: JunshiCheat-Deb
+        path: packages/

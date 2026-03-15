@@ -1,0 +1,17 @@
+# Build directories
+build/
+packages/
+theos/
+obj/
+
+# Xcode
+*.xcodeproj/
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.swp
+*.swo
+*~
